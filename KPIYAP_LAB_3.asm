@@ -3,129 +3,154 @@
 .stack 100h 
     
 .data
-    message1 db 'Input 5x6: $'
+    message1 db 'Input 5x6: ',0Dh, 0Ah, '$'
     message2 db 'Result: $'
                   
-    array  db 30 dup (0)
-    result db 6 dup (1)     
+    array  db 31 dup (0)
+    result dw 6 dup (1)     
     flag    db  0    
     enter db 0Dh, 0Ah, '$'
     symbol db '$$'
         
 .code
 START:     
-   mov ax, @data
-   mov ds, ax   
+   mov   AX, @data
+   mov   DS, AX  
+   
+   mov   AH, 09h         
+   mov   DX, offset Message1
+   int   21h 
                     
-   mov   cx,30               
-   xor   bx,bx              
-   lea   DI,array            
+   mov   CX,30               
+   xor   BX,BX              
+   lea   DI,array 
+   lea   SI,result           
 cycle:                   
-   mov   al,' '
-    
-   mov   bp, ax
-   mov   [symbol], al 
-   mov   ah, 09h         
-   mov   dx, offset symbol
+   mov   AL,' '    
+   mov   BP, AX
+   mov   [symbol], AL 
+   mov   AH, 09h         
+   mov   DX, offset symbol
    int   21h
-   mov   ax, bp 
-                
+   mov   AX, BP  
    call  ASC2HEX 
    cmp   flag, 1
-   jne ppp
-   neg AX
-   dec flag
+   jne   ppp
+   neg   AX
+   dec   flag
    
 ppp:                             
-   mov   [di], AX
-   inc   di
-   dec   cx                     
-   inc   bx                  
-   cmp   bx, 5                
-   jnz   next                 
-   xor   bx,bx                            
-   mov   dx,offset enter               
-   mov   ah,9                 
+   mov   [DI], AX
+   mov   BP, [SI]
+   mul   BP
+   mov   [SI], AX
+   inc   DI
+   inc   SI 
+   inc   SI
+   dec   CX                     
+   inc   BX                  
+   cmp   BX, 5                
+   jnz   next 
+   lea   SI, result                
+   xor   BX,BX                            
+   mov   DX,offset enter               
+   mov   AH,9                 
    int   21h                  
 next:
-   cmp cx, 0                                    
-   jne  cycle
-   lea si, array
-   lea di, result
-   mov ax, 0
-   mov bx, 0 
-   
-   jmp search              
+   cmp   CX, 0                                    
+   jne   cycle
+   lea   SI, result
+   mov   CX, 5    
+   jmp   exit              
     
     
    
    
     
-ASC2HEX:                                             
-   push cx 
-   push bx 
-   push si 
-   push di          
-   xor   si,si               
-   mov   bx,10                
-   mov   cx,2                 
+ASC2HEX proc                                             
+   push  CX 
+   push  BX 
+   push  SI 
+   push  DI          
+   xor   SI,SI               
+   mov   BX,10                
+   mov   CX,2                 
 typeDigit:                    
-   xor   ax,ax                
+   xor   AX,AX                
    int   16h    
    
-   mov   bp, ax
-   mov   [symbol], al 
-   mov   ah, 09h         
-   mov   dx, offset symbol
+   mov   BP, AX
+   mov   [symbol], AL
+   mov   AH, 09h         
+   mov   DX, offset symbol
    int   21h
-   mov   ax, bp
+   mov   AX, BP
                     
-   cmp   al,'-'             
+   cmp   AL,'-'             
    jne   positive
    
    inc   flag
 positive:                     
-   cmp   al,'0'               
+   cmp   AL,'0'               
    jb    typeDigit            
-   cmp   al,'9'               
+   cmp   AL,'9'               
    ja    typeDigit 
-   and   ax,0Fh              
-   xchg  ax,si                
-   mul   bx              
-   add   si,ax             
+   and   AX,0Fh              
+   xchg  AX,SI                
+   mul   BX              
+   add   SI,AX             
    loop  typeDigit           
-   xchg  ax,si               
-   pop   di 
-   pop si 
-   pop bx 
-   pop cx        
-RET                           
+   xchg  AX,SI               
+   pop   DI 
+   pop   SI 
+   pop   BX 
+   pop   CX        
+RET
+ASC2HEX endp
+ 
+ 
+OutInt proc
+    push CX
+    test AX, AX
+    jns  oi1
 
-search:
-   cmp bx, 6
-   je exit 
-a1:   
-   cmp ax, 7
-    jne a2
-   mov ax,0
-   inc bx
-   lea si, array
-   inc di
-   add si, bx
-   jmp a2
-a2:      
-   add si, ax
-   mov dx, [si]
-   sub [di], dx
-   inc ax
-   jmp search
+    mov  CX, AX
+    mov  AH, 02h
+    mov  DL, '-'
+    int  21h
+    mov  AX, CX
+    neg  AX
+oi1:  
+    xor  CX, CX
+    mov  BX, 10 
+oi2:
+    xor  DX,DX
+    div  BX
+    push DX
+    inc  CX
+    test AX, AX
+    jnz  oi2
+    mov  AH, 02h
+oi3:
+    pop  DX
+    add  DL, '0'
+    int  21h
+    loop oi3
+    pop  CX
+    ret
+ 
+OutInt endp
        
    
 exit:  
-
-
-   mov   ah, 09h         
-   lea   dx, result
-   int   21h
+   mov AX, [SI]
+   call OutInt
+   mov DX, ' '
+   int 21h
+   inc SI
+   inc SI
+   dec CX
+   cmp CX, 0
+   jne exit
        
 end START
