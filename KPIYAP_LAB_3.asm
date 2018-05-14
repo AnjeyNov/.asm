@@ -42,7 +42,7 @@ cycle:
 ppp:                             
    mov   [DI], AX
    mov   BP, [SI]
-   mul   BP
+   mul   [SI]
    mov   [SI], AX
    inc   DI
    inc   SI 
