@@ -6,7 +6,7 @@ long double mas[10];
 int main(int argc, char *argv[]) {
 
 	long double sum = 0;
-	int iteration = 9;
+	int iteration = 10;
 	int one = 1;
 	int DE = 0, OE = 0, UE = 0, PE= 0;
 
@@ -18,25 +18,25 @@ int main(int argc, char *argv[]) {
 	_asm{
 		finit			// init mat. proc.
 
-		fild iteratoin	// ST(0) = x
+		fild iteration	// ST(0) = 10
 
 		fldz			// ST(0) = 0 (iteration)
-						// ST(1) = x (9)
+						// ST(1) = 0
 
 		xor EDI, EDI
 		loop_start:
 			fcom				// compare ST(0) and ST(1)
 			fstsw ax			// copy status word(SW) to AX
-			and ah, 01000101b	// check C3, C2, C1
+			and ah, 00000101b	// check C3, C2, C1
 			jz to_exit
 
 			fld sum				// ST(0) = sum
 								// ST(1) = iteration
-								// ST(2) = 9
+								// ST(2) = 10
 
 			fadd mas[EDI]		// ST(0) = sum + mas[EDI]
 								// ST(1) = iteration
-								// ST(2) = 9
+								// ST(2) = 10
 
 			fstsw ax
 			and al, 00001000b
@@ -53,10 +53,10 @@ int main(int argc, char *argv[]) {
 
 			fstp sum			// sum = ST(0)
 								// ST(0) = iteration
-								// St(1) = 9
+								// St(1) = 10
 
 			fiadd one			// ST(0) = iteration + 1
-								// ST(1) = 9
+								// ST(1) = 10
 				
 			add EDI, 08h
 
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (OE == 0 && UE == 0 && DE == 0 && PE == 0) {
-		printf("Result = %lf \n", sum, mas[0]);
+		printf("Result = %lf \n", sum);
 	}
 	else if (OE) {
 		printf("Overflow\n");
