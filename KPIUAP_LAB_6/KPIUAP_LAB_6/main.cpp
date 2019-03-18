@@ -6,7 +6,7 @@ long double mas[10];
 int main(int argc, char *argv[]) {
 
 	long double sum = 0;
-	int x = 9;
+	int iteration = 9;
 	int one = 1;
 	int DE = 0, OE = 0, UE = 0, PE= 0;
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 	_asm{
 		finit			// init mat. proc.
 
-		fild x			// ST(0) = x
+		fild iteratoin	// ST(0) = x
 
 		fldz			// ST(0) = 0 (iteration)
 						// ST(1) = x (9)
@@ -34,10 +34,9 @@ int main(int argc, char *argv[]) {
 								// ST(1) = iteration
 								// ST(2) = 9
 
-			fld mas[EDI]		// ST(0) = sum + mas[EDI]
+			fadd mas[EDI]		// ST(0) = sum + mas[EDI]
 								// ST(1) = iteration
 								// ST(2) = 9
-			fadd
 
 			fstsw ax
 			and al, 00001000b
@@ -95,7 +94,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (OE == 0 && UE == 0 && DE == 0 && PE == 0) {
-		printf("Result = \n%lf \n%lf\n", sum, mas[0]);
+		printf("Result = %lf \n", sum, mas[0]);
 	}
 	else if (OE) {
 		printf("Overflow\n");
